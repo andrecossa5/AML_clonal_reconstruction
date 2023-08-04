@@ -164,7 +164,7 @@ def main():
     t = Timer()
 
     # Create folder
-    make_folder(path_results, sample, overwrite=True)
+    make_folder(path_results, sample, overwrite=False)
     logger = set_logger(os.path.join(path_results, sample), 'log.txt')
     
     # Set logger
