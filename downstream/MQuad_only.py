@@ -71,7 +71,6 @@ args = my_parser.parse_args()
 
 path_main = args.path_main
 sample = args.sample
-min_cov_treshold = args.min_cov_treshold
 GBC =  args.GBC
 ncores = args.ncores
 
