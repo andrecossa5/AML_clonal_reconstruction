@@ -35,14 +35,6 @@ my_parser.add_argument(
     help='Sample to use. Default: MDA_clones.'
 )
 
-# min_cell_number
-my_parser.add_argument(
-    '--min_cell_number', 
-    type=int,
-    default=0,
-    help='min_cell_number treshold.'
-)
-
 # GBC
 my_parser.add_argument(
     '--GBC', 
@@ -122,7 +114,7 @@ def main():
         sample=sample,
         filtering='MQuad', 
         min_cell_number=0,
-        min_cov_treshold=min_cov_treshold,
+        min_cov_treshold=50,
         nproc=ncores, 
         path_=os.path.join(path_results, sample)
     )
