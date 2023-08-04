@@ -56,19 +56,6 @@ args = my_parser.parse_args()
 
 ##
 
-# path_main = '/Users/IEO5505/Desktop/mito_bench/'
-# sample = 'MDA_clones'
-# range_clones = np.arange(2, 15)
-# chosen = None
-# filtering = 'MQuad'
-# min_cov_treshold = 50
-# min_cell_number = 10
-# p_treshold = 0.8
-# GBC = True
-# ncores = 4
-
-##
-
 path_main = args.path_main
 sample = args.sample
 GBC =  args.GBC
@@ -120,6 +107,15 @@ def main():
 
     # Save vars
     pd.Series(a.var_names).to_csv(os.path.join(path_results, f'{sample}_MQuad_vars.csv'))
+
+##
+
+
+####################################################################
+
+# Run
+if __name__ == '__main__':
+    main()
 
 
 
