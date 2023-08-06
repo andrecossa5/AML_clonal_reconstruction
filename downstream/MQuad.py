@@ -56,6 +56,13 @@ args = my_parser.parse_args()
 
 ##
 
+
+# path_main = '/Users/IEO5505/Desktop/AML_clonal_reconstruction/'
+# sample = 'sAML1'
+# GBC = False
+# ncores = 8
+
+
 path_main = args.path_main
 sample = args.sample
 GBC =  args.GBC
@@ -75,10 +82,11 @@ from mito_utils.plotting_base import *
 from mito_utils.embeddings_plots import *
 from mito_utils.dimred import *
 from mito_utils.clustering import *
+from mito_utils.diagnostic_plots import *
 
 # Paths 
 path_data = os.path.join(path_main, 'data')
-path_results = os.path.join(path_main, 'results', 'vireo')
+path_results = os.path.join(path_main, 'results', 'variants_selection')
 
 ####################################################################
 
@@ -98,15 +106,16 @@ def main():
     _, a = filter_cells_and_vars(
         afm,
         sample=sample,
-        filtering='MQuad', 
-        min_cell_number=0,
+        filtering='MQuad',
         min_cov_treshold=50,
         nproc=ncores, 
         path_=os.path.join(path_results, sample)
     )
 
     # Save vars
-    pd.Series(a.var_names).to_csv(os.path.join(path_results, f'{sample}_MQuad_vars.csv'))
+    pd.Series(a.var_names).to_csv(
+        os.path.join(path_results, sample, f'{sample}_MQuad_vars.csv')
+    )
 
 ##
 
