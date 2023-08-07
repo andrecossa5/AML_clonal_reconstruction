@@ -177,7 +177,7 @@ def main():
     # Save
     df.to_csv(os.path.join(path_results, sample, 'vireo_clones.csv'))
     fig.savefig(
-        os.path.join(path_results, sample, 'vireo_ELBO.csv'),
+        os.path.join(path_results, sample, 'vireo_ELBO.png'),
         dpi=300
     )
 
