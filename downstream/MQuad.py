@@ -12,7 +12,7 @@ import os
 
 # Create the parser
 my_parser = argparse.ArgumentParser(
-    prog='vireoSNP',
+    prog='MQuad',
     description='Wrapper script within MQuad.'
 )
 
@@ -114,7 +114,7 @@ def main():
 
     # Save vars
     pd.Series(a.var_names).to_csv(
-        os.path.join(path_results, sample, f'{sample}_MQuad_vars.csv')
+        os.path.join(path_results, sample, 'MQuad_vars.csv')
     )
 
 ##
