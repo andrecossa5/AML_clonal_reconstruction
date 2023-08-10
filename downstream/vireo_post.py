@@ -145,11 +145,11 @@ def main():
     ############################## Viz clones enrichment in aggregated lineages
 
     # Lineage-bias
-    fig = plt.figure(figsize=(10,7))
+    fig = plt.figure(figsize=(11,7))
 
     for i, x in enumerate(df_filtered['aggregated_lineage2'].unique()):
 
-        ax = fig.add_subplot(4,2,i+1)
+        ax = fig.add_subplot(5,2,i+1)
 
         df_ = (
             compute_clonal_fate_bias(df_filtered, 'aggregated_lineage2', best, x)
