@@ -108,13 +108,13 @@ def main():
 
     # Lineage
     df_ = (
-        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage'], normalize=1)
+        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage2'], normalize=1)
     )
     plot_heatmap(df_, ax=axs[0], annot=True, label='Lineage fraction', rank_diagonal=True)
 
     # MT clone
     df_ = (
-        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage'], normalize=0)
+        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage2'], normalize=0)
     )
     plot_heatmap(df_, ax=axs[1], annot=True, label='MT-clone fraction', rank_diagonal=True)
 
@@ -129,7 +129,7 @@ def main():
     # n cells
     fig, ax = plt.subplots(figsize=(4.5, 5), constrained_layout=True)
     df_ = (
-        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage'])
+        pd.crosstab(df_filtered[best], df_filtered['aggregated_lineage2'])
     )
     plot_heatmap(df_, ax=ax, annot=True, label='n cells', rank_diagonal=True)
     fig.suptitle(f'{sample} MT clone-lineage relationship')
@@ -147,12 +147,12 @@ def main():
     # Lineage-bias
     fig = plt.figure(figsize=(8,7))
 
-    for i, x in enumerate(df_filtered['aggregated_lineage'].unique()):
+    for i, x in enumerate(df_filtered['aggregated_lineage2'].unique()):
 
         ax = fig.add_subplot(3,2,i+1)
 
         df_ = (
-            compute_clonal_fate_bias(df_filtered, 'aggregated_lineage', best, x)
+            compute_clonal_fate_bias(df_filtered, 'aggregated_lineage2', best, x)
             .reset_index()
             .rename(columns={'index':'MT_clone'})
         )
@@ -176,7 +176,7 @@ def main():
 
     # Cumulative clone percentages
     cross = pd.crosstab(df_filtered[best], df_filtered['lineage'], normalize=0)
-    res = compute_clonal_fate_bias(df_filtered, 'aggregated_lineage', best, 'HSC_progenitors')
+    res = compute_clonal_fate_bias(df_filtered, 'aggregated_lineage2', best, 'HSC_progenitors')
     blast_like_clones = res.query('FDR<=.05').index.astype('str')
 
     fig, ax = plt.subplots(figsize=(6, 5))
@@ -243,14 +243,14 @@ def main():
 
     # Viz
     df_ = expr_umap.join(df_filtered, how='right')
-    res = compute_clonal_fate_bias(df_, 'aggregated_lineage', best, 'HSC_progenitors')
+    res = compute_clonal_fate_bias(df_, 'aggregated_lineage2', best, 'HSC_progenitors')
     blast_like_clones = res.query('FDR<=.05').index.astype('str')
     df_['MT_clone_status'] = np.where(df_[best].isin(blast_like_clones), 'Blast-like', 'Others')
 
     # Viz states
     fig, axs = plt.subplots(1,3,figsize=(15,4.5))
 
-    draw_embeddings(df_, cat='aggregated_lineage', ax=axs[0],
+    draw_embeddings(df_, cat='aggregated_lineage2', ax=axs[0],
                     legend_kwargs={'loc':'upper left', 'bbox_to_anchor':(1,1)})
     axs[0].axis('off')
 
@@ -331,7 +331,7 @@ def main():
 
     # Perfect meta
     a = a[df_filtered.index,:].copy()
-    res = compute_clonal_fate_bias(df_filtered, 'aggregated_lineage', best, 'HSC_progenitors')
+    res = compute_clonal_fate_bias(df_filtered, 'aggregated_lineage2', best, 'HSC_progenitors')
     blast_like_clones = res.query('FDR<=.05').index.astype('str')
     df_filtered['MT_clone_status'] = np.where(
         df_filtered[best].isin(blast_like_clones), 'Blast-like', 'Others'
