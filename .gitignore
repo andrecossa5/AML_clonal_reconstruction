@@ -139,7 +139,4 @@ dmypy.json
 data/
 results_and_plots/
 results/
-
-
-
-
+old_results/
