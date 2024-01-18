@@ -1,0 +1,14 @@
+2023-08-07 10:22:48,106 - mito_benchmark - INFO -  
+        Execute clones unsupervised, vireoSNP: 
+
+        --sample AML2
+        --min_cov_treshold 50
+        --p_treshold 0.8
+        
+2023-08-07 10:23:38,736 - mito_benchmark - INFO - Found 57 variants for sampe AML2.
+2023-08-07 10:23:38,736 - mito_benchmark - INFO - Filter cells and variants for the original AFM...
+2023-08-07 10:23:47,741 - mito_benchmark - INFO - Filtered feature matrix contains 4023 cells and 57 variants.
+2023-08-07 10:24:05,821 - mito_benchmark - INFO - Data preparation and UMAP computation 77.71 s
+2023-08-07 16:18:22,061 - mito_benchmark - INFO - Finished vireoSNP clustering 354.27 min
+2023-08-07 16:18:22,063 - mito_benchmark - INFO - Best solution yiels 12 MT_clones.
+2023-08-07 16:18:22,695 - mito_benchmark - INFO - Execution was completed successfully in total 355.58 min

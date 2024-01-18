@@ -62,7 +62,6 @@ args = my_parser.parse_args()
 # GBC = False
 # ncores = 8
 
-
 path_main = args.path_main
 sample = args.sample
 GBC =  args.GBC

@@ -13,13 +13,16 @@ from mito_utils.plotting_base import *
 from mito_utils.diagnostic_plots import *
 from mito_utils.embeddings_plots import *
 import matplotlib
-# matplotlib.use('macOSX')
+matplotlib.use('macOSX')
 
 
 ##
 
 # Args
 # path_main = '/Users/IEO5505/Desktop/AML_clonal_reconstruction'
+# sample = 'sAML1'
+# best = '8_clones'
+
 path_main = sys.argv[1]
 sample = sys.argv[2]
 best = sys.argv[3]
@@ -63,7 +66,6 @@ def main():
     # Join
     df = meta.loc[clones.index].join(clones)
     df_filtered = df.loc[lambda x: x[best] != 'unassigned']
-
 
     ##
 
