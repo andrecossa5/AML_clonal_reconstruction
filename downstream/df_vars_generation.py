@@ -51,7 +51,7 @@ def main():
             n5 = lambda x: np.sum(afm.X>.05, axis=0),
             n10 = lambda x: np.sum(afm.X>.1, axis=0),
             n50 = lambda x: np.sum(afm.X>.5, axis=0),
-            Variant_CellN = lambda x: np.sum(afm.X==0, axis=0),
+            Variant_CellN = lambda x: np.sum(afm.X>0, axis=0),
         )
     )
 
