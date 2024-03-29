@@ -23,12 +23,12 @@ def main():
 
     # Read, format and retain good cells
     afm = read_one_sample(path_data, sample, with_GBC=False)
-    print(afm)
     meta = pd.read_csv(path_meta, index_col=0)
     meta =  meta.query('sample_id==@sample')
     meta.index = meta.index.map(lambda x: x.split('-')[0])
     afm.obs = afm.obs.join(meta)
     afm = afm[~afm.obs['malignant_class_occupancy'].isna(),:].copy()
+    print(afm)
 
     # Calculate vars_df, as in in Weng et al., 2024, and Miller et al. 2022 before.
     mean_sites = afm.uns['per_position_coverage'].mean(axis=0)
