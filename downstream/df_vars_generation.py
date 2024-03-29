@@ -11,8 +11,9 @@ warnings.simplefilter('ignore')
 
 
 # Paths
-path_wd = sys.argv[1]
-sample = sys.argv[2]
+path_data = sys.argv[1]
+path_meta = sys.argv[2]
+sample = sys.argv[3]
 
 
 ##
@@ -20,8 +21,8 @@ sample = sys.argv[2]
 
 def main():
     # Read, format and retain good cells
-    afm = read_one_sample(path_wd, sample, with_GBC=False)
-    meta = pd.read_csv(os.path.join(path_wd, 'meta', 'cells_meta.csv'), index_col=0)
+    afm = read_one_sample(path_data, sample, with_GBC=False)
+    meta = pd.read_csv(path_meta, index_col=0)
     meta =  meta.query('sample_id==@sample')
     meta.index = meta.index.map(lambda x: x.split('-')[0])
     afm.obs = afm.obs.join(meta)
