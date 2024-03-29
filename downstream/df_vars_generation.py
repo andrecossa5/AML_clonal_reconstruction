@@ -69,7 +69,7 @@ def main():
     )
 
     # Write 
-    vars_df.to_csv(os.path.join(path_wd, f'{sample}_vars.csv'))
+    vars_df.to_csv(os.path.join(path_data, f'{sample}_vars.csv'))
 
 
     ##
