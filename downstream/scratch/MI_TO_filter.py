@@ -1,8 +1,8 @@
-"""
-New, redeem-like MI_TO filter, on streoids.
-"""
+#!/usr/bin/python
 
 import os
+import argv
+from itertools import product
 from mito_utils.preprocessing import *
 from mito_utils.kNN import *
 from mito_utils.phylo import *
@@ -18,164 +18,145 @@ warnings.simplefilter('ignore')
 
 
 # Paths
-path_main = '/Users/IEO5505/Desktop/AML_clonal_reconstruction'
-path_data = os.path.join(path_main, 'data')
-path_colors = os.path.join(path_data, 'meta', 'colors.pickle')
-path_results = os.path.join(path_main, 'results', 'figure_out_sAML1')
+# path_main = '/Users/IEO5505/Desktop/AML_clonal_reconstruction'
+# path_data = os.path.join(path_main, 'data')
+path_main = argv[1]
 
 
 ##
 
 
 # Read AFM and meta
-sample = 'sAML1'
+# sample = 'sAML1'
+sample = argv[2]
 
 # Read, format and retain good cells
-afm = read_one_sample(path_data, sample, with_GBC=False)
+afm = read_one_sample(path_data, sample)
+
+# Read cells meta
 meta = pd.read_csv(os.path.join(path_data, 'meta', 'cells_meta.csv'), index_col=0)
-meta =  meta.query('sample_id=="sAML1"')
+meta = meta.query('sample_id==@sample')
 meta.index = meta.index.map(lambda x: x.split('-')[0])
-afm.obs = afm.obs.join(meta)
-afm = afm[~afm.obs['malignant_class_occupancy'].isna(),:].copy()
+afm.obs = afm.obs.join(meta[['malignant_class_occupancy']])
+
+# Filter cells
+filtering_kwargs = {
+    'min_site_cov' : [5, 10, 35], 
+    'min_var_quality' : [30], 
+    'min_frac_negative' : [.5, .75, .9],
+    'min_n_positive' : [2, 5, 10],
+    'low_confidence_af' : [.001, .01, .1], 
+    'high_confidence_af' : [.01, .1, .5], 
+    'min_prevalence_low_confidence_af' : [.001, .01, .1], 
+    'min_cells_high_confidence_af' : [2, 5, 10]
+}
+
+# Product
+jobs = list(product(*filtering_kwargs.values()))
+jobs = [ dict(zip(filtering_kwargs.keys(), j)) for j in jobs ]
+
+i = 0
+for j in jobs:
+    if d['low_confidence_af'] > d['high_confidence_af']:
+        print(i)
+        i += 1
+        vars_df, dataset_df, a = filter_cells_and_vars(
+            afm, filtering='weng2024', filtering_kwargs=j,
+            lineage_column='malignant_class_occupancy',
+            spatial_metrics=False, fit_mixtures=False, 
+            path_priors='/Users/IEO5505/Desktop/AML_clonal_reconstruction/data/vars_df/priors.csv'
+        )
+
+# Save
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ##
 
 
-# Filter now
-a = filter_baseline(afm)
-a = filter_baseline_old(afm)
-# a = filter_sites(a)
-a = filter_density(afm, density=.07)
-a = filter_weng2024(afm, make_vars_df(afm))
+# Distances, kNNs
+# df_weights = pd.read_csv('/Users/IEO5505/Desktop/AML_clonal_reconstruction/data/vars_df/priors.csv', index_col=0)
+# w = 1-df_weights.loc[a.var_names,'median_prevalence'].values
+# D = pair_d(a, weights=w)
+# 
+# tree_uw = build_tree(a)
+# tree_w = build_tree(a, weights=w)
+# fig, axs = plt.subplots(1,2,figsize=(10,5))
+# plot_tree(tree_uw, ax=axs[0])
+# plot_tree(tree_w, ax=axs[1])
+# fig.tight_layout()
+# plt.show()
 
-
-from mito_utils.dimred import reduce_dimensions
-
-df = reduce_dimensions(a, method='UMAP', metric='jaccard', n_comps=2)
-X = df[0][:,:2]
-fig, ax = plt.subplots(figsize=(7,7))
-ax.plot(X[:,0], X[:,1], 'ko')
-fig.tight_layout()
-plt.show()    
-
-
-tree = build_tree(a, metric='jaccard')
-
-fig, ax = plt.subplots(figsize=(7,7))
-plot_tree(tree, ax=ax)
-fig.tight_layout()
-plt.show()    
-
-
-low_af = .01
-afm.uns['per_position_coverage'].mean(axis=0).describe()
-X_bin = np.where(a.X>=low_af,1,0)
 
 
 ##
 
 
-# 1. n cells per var and n vars per cell
-# vars_df.loc[vars_, 'Variant_CellN'].describe()
-pd.Series(np.sum(X_bin, axis=1)).describe()
-pd.Series(np.sum(X_bin, axis=0)).describe()
-
-
-# 2. Connectedness
-D = pairwise_distances(X_bin, metric=lambda x, y: np.sum(np.logical_and(x, y)))
-cell_conn = np.ma.masked_equal(D, np.diag(D)).mean(axis=1).data
-pd.Series(cell_conn).describe()
-
-# 3. Sparseness and n genotypes occurrence
-np.sum(a.X==1) / np.product(a.shape)
-d = AFM_to_seqs(a)
-pd.Series(d).value_counts().describe()
-
-# 4. Annot
-a.var_names.map(lambda x: x.split('_')[1]).value_counts() # .sum()
-
-# 4. Drop-out simulation
-#...
-
-# 5. TME-leukemic clone?
-tme = a.obs['malignant_class_occupancy']=='tme'
-tme_prevalences = np.sum(X_bin[tme,:], axis=0)/tme.sum()
-leukemic = a.obs['malignant_class_occupancy']=='malignant'
-leukemic_prevalences = np.sum(X_bin[leukemic,:], axis=0)/leukemic.sum()
-
-np.sum((tme_prevalences<=.1) & (leukemic_prevalences>=.2))
-corr = np.corrcoef(leukemic_prevalences, tme_prevalences)[0,1]
-
-fig, ax = plt.subplots(figsize=(4.5,4.5))
-ax.plot(tme_prevalences, leukemic_prevalences, 'ko', markersize=3)
-sns.regplot(x=tme_prevalences, y=leukemic_prevalences, ax=ax, scatter=False)
-format_ax(ax, title=f'TME-malignant correlation: r2={corr:.2f}', 
-          xlabel='TME prevalence', ylabel='Malignant prevalence', reduced_spines=True)
-ax.set_xlim((-0.05,1.05))
-ax.set_ylim((-0.05,1.05))
-fig.tight_layout()
-plt.show()
 
 
 
-# 6. Tree mutations support
 
-# Post-process tree
-# tree_collapsed = tree.copy()
-# tree_collapsed.collapse_mutationless_edges(True)
-# len(tree_collapsed.internal_nodes) / len(tree.internal_nodes)
+
+
+# from mito_utils.clustering import *
+ 
+# D = np.corrcoef(a.X.T>=0.01)
+# D[np.isnan(D)] = 0  
+# D[np.diag_indices(D.shape[0])] = 1
+# linkage_matrix = linkage(D, method='weighted')
+# order = leaves_list(linkage_matrix)
+
+# np.percentile(D.flatten(), 99)
+
+# fig, axs = plt.subplots(1,2)
+# axs[0].imshow(D[np.ix_(order, order)])
+# # axs[1].imshow(D[np.ix_(idx, idx)])
+# fig.tight_layout()
+# plt.show()
+
+
 
 # Get clade muts
-clades = { 
-    x : (get_internal_node_muts(tree, x), tree.leaves_in_subtree(x)) \
-    for x in tree.internal_nodes if x != 'root'
-}
-
-# Quantify the prevalence ratio (clade vs rest mutation prevalence) of mutations assigned 
-# to each internal node. Get the most supported value and mutation
-stats = []
-for c in clades:
-    top_mut = assess_internal_node_muts(a, clades, c, high_af=.01)
-    s = top_mut.iloc[0,:]
-    stats.append(s)
-
-df_stats = pd.concat(stats, axis=1).T.reset_index().rename(columns={'index':'mut'}).set_index('clade')
-final_muts = df_stats['mut'].unique()
-
-
-##
-
-
-# Rebuild with filtered muts
-
-# Build tree
-_, a = filter_cells_and_vars(afm, variants=final_muts)
-X_bin = np.where(a.X>=high_af,1,0)
-
-# Tree
-tree = build_tree(a, t=high_af, solver='NJ')
-tree_collapsed = tree.copy()
-tree_collapsed.collapse_mutationless_edges(True)
-len(tree_collapsed.internal_nodes) / len(tree.internal_nodes)
-
-# Format into df
-clades = { 
-    x : (get_internal_node_muts(tree_collapsed, x), tree_collapsed.leaves_in_subtree(x)) \
-    for x in tree_collapsed.internal_nodes if x != 'root'
-}
-stats = []
-for c in clades:
-    top_mut = assess_internal_node_muts(a, clades, c, high_af=high_af)
-    s = top_mut.iloc[0,:]
-    stats.append(s)
-
-# Final supporting muts stats
-df_stats = pd.concat(stats, axis=1).T.reset_index().rename(columns={'index':'mut'}).set_index('clade')
-final_muts = df_stats['mut'].unique()
-final_muts.size
-
-df_stats.sort_values('ncells', ascending=False)
+# clades = { 
+#     x : (get_internal_node_muts(tree, x), tree_collapsed.leaves_in_subtree(x)) \
+#     for x in tree_collapsed.internal_nodes if x != 'root'
+# }
+# 
+# # Quantify the prevalence ratio (clade vs rest mutation prevalence) of mutations assigned 
+# # to each internal node. Get the most supported value and mutation
+# stats = []
+# for c in clades:
+#     top_mut = assess_internal_node_muts(a, clades, c, high_af=.01)
+#     s = top_mut.iloc[0,:]
+#     stats.append(s)
+# 
+# df_stats = pd.concat(stats, axis=1).T.reset_index().rename(columns={'index':'mut'}).set_index('clade')
+# final_muts = df_stats['mut'].unique()
 
 
 ##
@@ -202,72 +183,19 @@ df_stats.sort_values('ncells', ascending=False)
 
 
 # Viz tree
-fig, ax = plt.subplots(figsize=(7,7))
-plot_tree(
-    tree_collapsed, 
-    ax=ax, orient=90, extend_branches=True,
-    leaf_kwargs={'markersize':5},
-    internal_node_kwargs={'markersize':0, 'markeredgecolor':None},
-    cov_leaves='malignant_class_occupancy', cmap_leaves={'malignant':'r', 'tme':'b'}
-)
-fig.tight_layout()
-plt.show()      
+# fig, ax = plt.subplots(figsize=(7,7))
+# plot_tree(
+#     tree_collapsed, 
+#     ax=ax, orient=90, extend_branches=True,
+#     leaf_kwargs={'markersize':5},
+#     internal_node_kwargs={'markersize':0, 'markeredgecolor':None},
+#     cov_leaves='malignant_class_occupancy', cmap_leaves={'malignant':'r', 'tme':'b'}
+# )
+# fig.tight_layout()
+# plt.show()      
 
 
 ##
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -310,3 +238,6 @@ plt.show()
 # test_vars = test_vars_site_coverage & test_vars_quality & test_vars_coverage & test_vars_AF 
 # filtered = afm[:, test_vars].copy()
 # filtered = remove_excluded_sites(filtered)
+
+
+
