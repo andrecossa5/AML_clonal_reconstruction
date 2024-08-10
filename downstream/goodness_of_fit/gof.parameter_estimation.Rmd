@@ -1,0 +1,183 @@
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(MASS)
+library(fitdistrplus)
+
+SEED <- 4321
+set.seed(SEED)
+
+path_m_tot <- fs::path("/Users/ieo6983/Desktop/phylo/gof/DP.csv")
+path_m_suc <- fs::path("/Users/ieo6983/Desktop/phylo/gof/AD.csv")
+
+```
+
+
+```{r}
+# Matrices cells x variants 
+m_tot <- read.csv(path_m_tot, header = T, row.names = 1) %>% as.matrix(.)
+m_suc <- read.csv(path_m_suc, header = T, row.names = 1) %>% as.matrix(.)
+AF <- round(m_suc / m_tot,3)
+  
+# stima di success rate = AF media, sulle cellule, di quella variante
+AF_mean <- round(apply(AF, MARGIN = 2, mean),3)
+suc_mean <- round(apply(m_suc, MARGIN = 2, mean))
+trials_mean <- round(apply(m_tot, MARGIN = 2, mean))
+
+```
+
+
+## 1 dist for each variant
+```{r}
+par(mfrow = c(1,1))
+
+# Distribution
+for(i in 1:dim(m_suc)[2]){
+  data <- data.frame("n_success" = m_suc[,i])  
+
+  # Plot distribution
+  print(paste0("Distribution of n. successes x variant: ", i))
+  pdist <- plotdist(data$n_success, histo = TRUE, demp = TRUE)
+
+  # Stats
+  print(paste0("Skewness-Kurtosis plot x variant: ", i))
+  tryCatch({
+    pstat <- descdist(data$n_success, boot = 100, discrete = T)
+  }, 
+  error = function(e){
+    # Handle errors
+    print("Error occurred:")
+    print(e)
+    return(NA) 
+  })
+
+}
+
+```
+
+```{r fig.width = 10, fig.height = 8}
+# GOF plots
+par(mfrow = c(2,2))
+
+for(i in 1:dim(m_suc)[2]){
+  data <- data.frame("n_success" = m_suc[,i]) 
+  
+  print(paste0("Fitting nb and poi to variant: ", i))
+  
+  tryCatch({
+  poi <- fitdistrplus::fitdist(data=data$n_success, distr = "pois")  
+  nb <- fitdistrplus::fitdist(data=data$n_success, distr = "nbinom")
+  # Fitting of a binomial does not work with 
+    
+  print("Estimates:")
+  print(summary(poi))
+  print(summary(nb))
+  
+  print(paste0("Goodness-of-fit plots x variant: ", i))
+  d <- denscomp(list(poi, nb))
+  q <- qqcomp(list(poi, nb))
+  c <- cdfcomp(list(poi, nb))
+  p <- ppcomp(list(poi, nb))
+  
+  print(d); print(q); print(c); print(p)
+  },
+  
+  error = function(e){
+    # Handle errors
+    print("Error occurred:")
+    print(e)
+    return(NA) 
+  })
+
+}
+
+```
+
+## 1 dist for each cell 
+```{r}
+# Distribution
+par(mfrow = c(1,1))
+
+for(i in 1:dim(m_suc)[1]){
+  data <- data.frame("n_success" = m_suc[i,])  
+  
+  # Plot distribution
+  print(paste0("Distribution of n. successes x cell: ", i))
+  pdist <- plotdist(data$n_success, histo = TRUE, demp = TRUE)
+  
+  # Stats
+  print(paste0("Skewness-Kurtosis plot x variant: ", i))
+  tryCatch({
+    pstat <- descdist(data$n_success, boot = 100, discrete = T)
+  }, 
+  error = function(e){
+    # Handle errors
+    print("Error occurred:")
+    print(e)
+    return(NA) 
+  })
+}
+
+```
+
+```{r fig.width = 10, fig.height = 8}
+# GOF plots
+par(mfrow = c(2,2))
+
+for(i in 1:dim(m_suc)[1]){
+  data <- data.frame("n_success" = m_suc[i,]) 
+  
+  print(paste0("Fitting nb and poi to cell: ", i))
+  
+  tryCatch({
+    poi <- fitdistrplus::fitdist(data=data$n_success, distr = "pois")  
+    nb <- fitdistrplus::fitdist(data=data$n_success, distr = "nbinom")  
+  
+    print("Estimates:")
+    print(summary(poi))
+    print(summary(nb))
+    
+    print(paste0("Goodness-of-fit plots x cell: ", i))
+    d <- denscomp(list(poi, nb))
+    q <- qqcomp(list(poi, nb))
+    c <- cdfcomp(list(poi, nb))
+    p <- ppcomp(list(poi, nb))
+  
+    print(d); print(q); print(c); print(p)
+  }, 
+  error = function(e){
+    # Handle errors
+    print("Error occurred:")
+    print(e)
+    return(NA)
+  })
+
+}
+
+```
+
+
+```{r}
+#nb <- fitdistrplus::fitdist(data=data$n_success, distr = "nbinom", fix.arg = list(mu = as.vector(suc_mean[i])))
+
+#nb <- fitdistrplus::fitdist(data=data$n_success, distr = "nbinom", fix.arg = list(prob = as.vector(AF_mean[i])), 
+#                            start = list(size = as.vector(trials_mean[i])))
+
+#bin <- fitdistrplus::fitdist(data=data$n_success, distr = "binom", 
+#fix.arg = list(prob = as.vector(AF_mean[i])), 
+#start = list(size = as.vector(trials_mean[i])))
+
+```
+
+
+
+
+
+
+
+
+
